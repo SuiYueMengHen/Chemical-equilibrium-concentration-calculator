@@ -1,0 +1,45 @@
+(*Step 1:Define the stoichiometric matrices*)(*nu is the reactant \
+stoichiometric matrix (n x m),and nuPrime is the product \
+stoichiometric matrix (n x m)*)
+nu = {{1, 0}, {0, 1}, {0, 0}}; (*Example:A<->2B,B+C<->A*)
+nuPrime = {{0, 1}, {2, 0}, {0, 
+    1}}; (*Corresponding product stoichiometric matrix*)
+
+(*Step 2:Define initial concentrations of the substances*)
+initialConcentrations = {1, 0.5, 
+   1}; (*Initial concentrations:[A0,B0,C0]*)
+
+(*Step 3:Define the equilibrium constants for each reaction*)
+K = {4, 0.1}; (*K1=4 for A<->2B,K2=0.1 for B+C<->A*)
+
+(*Step 4:Define variables for the extent of each reaction \
+(xi1,xi2,...,xim)*)
+reactionProgress = Array[\[Xi], Length[K]];
+
+(*Step 5:Express the concentrations at equilibrium as functions of \
+reaction progress*)
+n = Length[initialConcentrations]; (*Number of substances*)
+m = Length[K]; (*Number of reactions*)
+
+(*Compute equilibrium concentrations*)
+equilibriumConcentrations = 
+  Table[initialConcentrations[[i]] + 
+    Sum[(nuPrime[[i, j]] - nu[[i, j]]) reactionProgress[[j]], {j, 1, 
+      m}], {i, 1, n}];
+
+(*Step 6:Set up the equilibrium constant equations*)
+equilibriumEquations = 
+  Table[K[[
+     j]] == (Times @@ (equilibriumConcentrations^
+         nuPrime[[All, j]]))/(Times @@ (equilibriumConcentrations^
+         nu[[All, j]])), {j, 1, m}];
+
+(*Step 7:Solve the system of nonlinear equations using FindRoot*)
+solution = 
+  FindRoot[Evaluate[equilibriumEquations], 
+   Evaluate[Table[{reactionProgress[[i]], 0}, {i, 1, m}]]];
+
+(*Step 8:Compute the equilibrium concentrations using the solution*)
+finalConcentrations = equilibriumConcentrations /. solution;
+
+finalConcentrations
